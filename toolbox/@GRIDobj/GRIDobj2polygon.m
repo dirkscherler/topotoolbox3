@@ -48,6 +48,8 @@ function [MS,x,y] = GRIDobj2polygon(DB,options)
 %                   to true to enable features with holes. Note that holes
 %                   are currently not supported well by the algorithm.
 %     waitbar       true or {false}. True will show a waitbar.
+%     pixelidxlist  true or {false}. True will add the pixel index list to
+%                   the output
 %
 % Output arguments
 %
@@ -78,6 +80,7 @@ arguments
     options.multipart (1,1) = false
     options.holes (1,1) = false
     options.waitbar (1,1) = false
+    options.pixelidxlist (1,1) = false
 end
 
 
@@ -89,6 +92,7 @@ geom    = options.geometry;
 mp      = options.multipart;
 holes   = options.holes;
 waitb   = options.waitbar;
+pxlist  = options.pixelidxlist;
 
 % check underlying class of the grid
 if isfloat(DB.Z)
@@ -150,9 +154,14 @@ for r = 1:ndb
     MS(counter).X = x;
     MS(counter).Y = y;
     MS(counter).ID = double(DB.Z(STATS(r).PixelIdxList(1)));
+    MS(counter).Area = double(STATS(r).Area);
     
     if writevalue
         MS(counter).gridval = double(uniquevals(r));
+    end
+
+    if pxlist
+        MS(counter).pixelidxlist = STATS(r).PixelIdxList;
     end
     
 end
