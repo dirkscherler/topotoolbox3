@@ -55,7 +55,7 @@ ct = 0;
 %fprintf(1,'Divide classification:\n');
 while ~isempty(ixep)
     
-    %ct
+    %ct % 
     % find segments with active endpoints
     ia = ismember(vertcat(M.st),ixep);
     [locr,locc] = find(ia);
