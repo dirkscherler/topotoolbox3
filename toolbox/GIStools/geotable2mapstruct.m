@@ -1,4 +1,4 @@
-function MS = geotable2mapstruct(GT)
+function MS = geotable2mapstruct(GT,options)
 
 %GEOTABLE2MAPSTRUCT Convert a geotable to a mapping structure
 %
@@ -14,6 +14,18 @@ function MS = geotable2mapstruct(GT)
 %
 %     GT    geotable
 %
+%     Parameter name/value pairs
+%
+%     'xycolvec'   {false} or true. If true, x- and y-coordinates are 
+%                  stored as column vectors. By default, they are row
+%                  vectors.
+%     'appendnan'  {false} or true. If true, a nan is appended at the end 
+%                  of the x and y coordinate vectors.
+%
+% Output arguments
+%
+%     MS    structure array
+%
 % See also: mapstruct2geotable, polygon2GRIDobj,
 %           STREAMobj/STREAMobj2geotable, STREAMobj/STREAMobj2mapstruct
 %
@@ -22,6 +34,8 @@ function MS = geotable2mapstruct(GT)
 
 arguments
     GT {mustBeGeotable}
+    options.xycolvec (1,1) = false
+    options.appendnan   (1,1) = false
 end
 
 [~,isproj] = parseCRS(GT);
@@ -31,6 +45,16 @@ if ~isproj
 else
     MS = geotable2table(GT,["X" "Y"]);
 
+end
+
+if options.appendnan
+    MS.X = cellfun(@(x) [x nan],MS.X,'UniformOutput',false);
+    MS.Y = cellfun(@(x) [x nan],MS.Y,'UniformOutput',false);
+end
+
+if options.xycolvec
+    MS.X = cellfun(@(x) x(:),MS.X,'UniformOutput',false);
+    MS.Y = cellfun(@(x) x(:),MS.Y,'UniformOutput',false);
 end
 
 geomType = GT.Shape.Geometry;

@@ -27,10 +27,14 @@ function [GT,x,y] = GRIDobj2geotable(DB,options)
 %     'holes'        {true} or false
 %     'parallel'     {true} or false. If true, function is run in parallel.
 %                    Testing is required to check performance differences.
+%     'nan2zero'     {true} or false. If true, nan-values in DB are
+%                    converted to zero. No polygons will be returned for
+%                    nan-regions.
 %
 % Output arguments
 %
-%     GT      geotable
+%     GT      geotable. The table contains the four variables Shape, 
+%             Geometry, ID and gridvalue.
 %     x,y     nan-punctuated coordinate vectors of the polygon outlines
 %     
 % Example 1
@@ -57,19 +61,24 @@ function [GT,x,y] = GRIDobj2geotable(DB,options)
 %           GRIDobj/cropbyregion
 % 
 % Author: Wolfgang Schwanghart (schwangh[at]uni-potsdam.de)
-% Date: 7. November, 2025 
+% Date: 8. July, 2026 
 
 arguments (Input)
     DB   GRIDobj
-    options.simplify = false
-    options.tol      = 0
-    options.conn      = 8;
-    options.holes    = true;
-    options.parallel = false;
+    options.simplify (1,1) = false
+    options.tol      (1,1) = 0
+    options.conn     (1,1) {mustBeMember(options.conn,[4 8])} = 8;
+    options.nan2zero (1,1) = true
+    options.holes    (1,1) = true;
+    options.parallel (1,1) = false;
 end
 
 holes = options.holes;
 conn  = options.conn;
+
+if options.nan2zero 
+    DB.Z(isnan(DB.Z)) = 0;
+end
 
 if isempty(DB.georef)
     error('DB.georef must contain a reference object.')
@@ -118,9 +127,11 @@ end
 
 validIDs = find(isvalid);
 validIDs = validIDs(:);
-ID = num2cell(validIDs);
+gridvalue = num2cell(validIDs);
+ID   = num2cell(1:numel(gridvalue))';
 Geom = repmat({'Geometry'},nregions,1);
-GT = cell2table([s Geom ID],"VariableNames",["Shape" "Geometry" "ID"]);
+GT = cell2table([s Geom ID gridvalue],...
+    "VariableNames",["Shape" "Geometry" "ID" "gridvalue"]);
 
 if isgeo
     GT.Shape.GeographicCRS = CRS;

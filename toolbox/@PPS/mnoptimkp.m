@@ -251,6 +251,7 @@ switch lower(options.method)
         results.mdl = mdl;
         results.int = int;
         results.chimax = locmax;
+        results.a0  = options.a0;
         
         if ~isempty(options.t)
             tini = options.t; % onset of incision
