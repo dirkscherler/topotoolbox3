@@ -4,40 +4,6 @@ on:
     branches: ["main"]
 
 jobs:
-  release:
-    if: github.repository == 'TopoToolbox/topotoolbox3'
-    name: Update release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    outputs:
-      new-tag: ${{ steps.tag.outputs.TAG }}
-    steps:
-      - uses: TopoToolbox/actions/checkout@main
-        with:
-          fetch-depth: 0
-          fetch-tags: true # Fetch all the tags so that we compute release number correctly
-      - name: Download compiled toolboxes
-        uses: TopoToolbox/actions/download-artifact@main
-        with:
-          path: release
-          pattern: "toolbox-*-*"
-          merge-multiple: true
-      - name: Generate tag
-        id: tag
-        run: |
-          PREFIX="release-$(date +'%Y%m%d')-"
-          MAX=$(git tag -l "${PREFIX}*" | sed -E "s/^${PREFIX}([0-9]+)/\1/" | sort -n | tail -n1)
-          NEXT=$((${MAX:-0} + 1))
-          NEW_TAG="${PREFIX}${NEXT}"
-          echo "TAG=$NEW_TAG" >> $GITHUB_OUTPUT
-          echo "TAG=$NEW_TAG" >> $GITHUB_ENV
-          echo "This release will be tagged: $NEW_TAG"
-      - name: Create release
-        run: |
-          gh release create $TAG --target main --generate-notes --latest -F .github/latest_release.md
   docs:
     if: github.repository == 'TopoToolbox/topotoolbox3'
     name: Build docs
@@ -73,7 +39,7 @@ jobs:
   package:
     if: github.repository == 'TopoToolbox/topotoolbox3'
     name: Package toolbox
-    needs: [docs, release]
+    needs: [docs]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -83,10 +49,6 @@ jobs:
         include:
           - os: windows-latest
             mex: false
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    permissions:
-      contents: write
     steps:
       - name: Checkout repository
         uses: TopoToolbox/actions/checkout@main
@@ -124,8 +86,40 @@ jobs:
         with:
           name: toolbox-${{ matrix.os }}-${{ matrix.mex }}
           path: release/TopoToolbox_*.mltbx
+  release:
+    if: github.repository == 'TopoToolbox/topotoolbox3'
+    name: Update release
+    runs-on: ubuntu-latest
+    needs: [package]
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      new-tag: ${{ steps.tag.outputs.TAG }}
+    steps:
+      - uses: TopoToolbox/actions/checkout@main
+        with:
+          fetch-depth: 0
+          fetch-tags: true # Fetch all the tags so that we compute release number correctly
+      - name: Download compiled toolboxes
+        uses: TopoToolbox/actions/download-artifact@main
+        with:
+          path: release
+          pattern: "toolbox-*-*"
+      - name: Generate tag
+        id: tag
+        run: |
+          PREFIX="release-$(date +'%Y%m%d')-"
+          MAX=$(git tag -l "${PREFIX}*" | sed -E "s/^${PREFIX}([0-9]+)/\1/" | sort -n | tail -n1)
+          NEXT=$((${MAX:-0} + 1))
+          NEW_TAG="${PREFIX}${NEXT}"
+          echo "TAG=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "TAG=$NEW_TAG" >> $GITHUB_ENV
+          echo "This release will be tagged: $NEW_TAG"
+      - name: Create release
+        run: |
+          gh release create $TAG --target main --generate-notes --latest -F .github/latest_release.md
       - name: Upload toolbox assets
         shell: bash
         run: gh release upload --repo $GITHUB_REPOSITORY $TAG release/*
-        env:
-          TAG: ${{needs.release.outputs.new-tag}}
