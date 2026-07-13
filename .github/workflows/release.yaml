@@ -86,11 +86,41 @@ jobs:
         with:
           name: toolbox-${{ matrix.os }}-${{ matrix.mex }}
           path: release/TopoToolbox_*.mltbx
+  test:
+    name: Download, install and test the toolbox
+    runs-on: ${{ matrix.os }}
+    needs: [package]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-26, windows-latest]
+        matlab-version: [R2023b, R2024a, R2024b, R2025a, R2025b, R2026a]
+    steps:
+      - name: Checkout repository
+        uses: TopoToolbox/actions/checkout@main
+      - name: Setup MATLAB
+        uses: TopoToolbox/actions/setup-matlab@main
+        with:
+          release: ${{ matrix.matlab-version }}
+          cache: ${{ matrix.os != 'windows-latest' }}
+          products: >-
+            Mapping_Toolbox
+            Image_Processing_Toolbox
+            MATLAB_Coder
+      - name: Download artifacts
+        with:
+          name: toolbox-${{ matrix.os }}
+          path: release/
+        uses: TopoToolbox/actions/download-artifact@main
+      - name: Run toolbox build step
+        uses: TopoToolbox/actions/run-build@main
+        with:
+          tasks: testToolbox        
   release:
     if: github.repository == 'TopoToolbox/topotoolbox3'
     name: Update release
     runs-on: ubuntu-latest
-    needs: [package]
+    needs: [test]
     permissions:
       contents: write
     env:
