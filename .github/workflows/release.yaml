@@ -105,8 +105,9 @@ jobs:
       - name: Download compiled toolboxes
         uses: TopoToolbox/actions/download-artifact@main
         with:
-          path: release
+          path: release/
           pattern: "toolbox-*-*"
+          merge-multiple: true
       - name: Generate tag
         id: tag
         run: |
