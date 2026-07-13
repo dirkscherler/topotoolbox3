@@ -109,7 +109,7 @@ jobs:
             MATLAB_Coder
       - name: Download artifacts
         with:
-          name: toolbox-${{ matrix.os }}
+          name: toolbox-${{ matrix.os }}-true
           path: release/
         uses: TopoToolbox/actions/download-artifact@main
       - name: Run toolbox build step
