@@ -151,3 +151,13 @@ function docTask(~)
 
     publishtthelp2html;
 end
+
+function testToolboxTask(~)
+
+file = fullfile("release",['TopoToolbox_' computer('arch') '.mltbx']);
+
+matlab.addons.toolbox.installToolbox(file);
+
+haslibtopotoolbox
+
+end
