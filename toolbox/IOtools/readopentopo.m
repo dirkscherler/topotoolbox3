@@ -30,6 +30,10 @@ function DEM = readopentopo(options)
 %     To delete a saved API key, navigate to the folder returned by the
 %     prefdir command and manually remove the opentopography.apikey file.
 %
+%     If you use any of these DEMs in your work, please acknowledge
+%     OpenTopgraphy. Most DEMs also have specific dataset citations that
+%     you should mention in your work. 
+%
 % Input arguments
 %
 %     Parameter name values
@@ -79,7 +83,10 @@ function DEM = readopentopo(options)
 %                                         Surface Model (MRDEM) of Canada
 %                      'CA_MRDEM_DTM':    Medium Resolution (30 m) Digital 
 %                                         Terrain Model (MRDEM) of Canada
-%
+%                      'ANADEM':          A Digital Terrain Model for South 
+%                                         America
+%                      'GEDTM30':         Global Ensemble Digital Terrain 
+%                                         Model
 %     'apikey'         char or string. See above on how to get and apply
 %                      the api key.
 %     'verbose'        {true} or false. If true, then some information on
@@ -120,7 +127,7 @@ arguments
      'AW3D30','AW3D30_E','SRTM15Plus',...
      'NASADEM','COP30','COP90',...
      'EU_DTM','GEDI_L3','GEBCOSubIceTopo','GEBCOIceTopo',...
-     'CA_MRDEM_DSM','CA_MRDEM_DTM'})} = 'SRTMGL3'
+     'CA_MRDEM_DSM','CA_MRDEM_DTM','GEDTM30','ANADEM'})} = 'SRTMGL3'
     options.filename = ''
     options.interactive (1,1) = false
     options.extent = []
@@ -139,7 +146,7 @@ validdems = {'SRTMGL3','SRTMGL1','SRTMGL1_E',...
      'AW3D30','AW3D30_E','SRTM15Plus',...
      'NASADEM','COP30','COP90',...
      'EU_DTM','GEDI_L3','GEBCOSubIceTopo','GEBCOIceTopo',...
-     'CA_MRDEM_DSM','CA_MRDEM_DTM'};
+     'CA_MRDEM_DSM','CA_MRDEM_DTM','GEDTM30','ANADEM'};
 
 demtype = validatestring(options.demtype,...
     validdems,'readopentopo');
@@ -154,7 +161,8 @@ requestlimits = [4.05e6, 0.45e6, 0.45e6, ...
                  0.45e6, 0.45e6, 125e6,...
                  0.45e6, 0.45e6, 4.05e6, ...
                  0.45e6, 50e7, 125e6, ...
-                 125e6, 0.45e6, 0.45e6]; % km^2
+                 125e6, 0.45e6, 0.45e6, ...
+                 0.45e6, 0.45e6]; % km^2
 requestlimit  = requestlimits(strcmp(demtype,validdems));
 
 % API URL
@@ -194,8 +202,13 @@ if ~isempty(options.extent)
         south = ext(3) - options.addmargin;
         north = ext(4) + options.addmargin;
 
-    elseif isa(options.extent,"geopolyshape")
-        [latlim,lonlim] = bounds(options.extent);
+    elseif isa(options.extent,"geopolyshape") || isa(options.extent,"mappolyshape")
+        if isa(options.extent,"mappolyshape")
+            [xlimits,ylimits] = bounds(options.extent);
+            [latlim,lonlim] = projinv(options.extent.ProjectedCRS,xlimits,ylimits);
+        else
+            [latlim,lonlim] = bounds(options.extent);
+        end
         west  = lonlim(1) - options.addmargin;
         east  = lonlim(2) + options.addmargin;
         south = latlim(1) - options.addmargin;
