@@ -5,7 +5,7 @@ function [d,z,varargout] = profiles(SW,options)
 %
 %    [d,z] = profiles(SW)
 %    [d,z] = profiles(SW,'pn','pv',...)
-%    [d,z,x,y] = profiles(SW,...)
+%    [d,z,x,y,ix] = profiles(SW,...)
 %
 %
 % Description
@@ -37,6 +37,7 @@ function [d,z,varargout] = profiles(SW,options)
 %     z     z-values 
 %     x     x-coorindates
 %     y     y-coordinates
+%     ix    indices of the position of the profiles
 %
 %
 % Example
@@ -61,8 +62,9 @@ function [d,z,varargout] = profiles(SW,options)
 %
 % See also: SWATHobj
 %
-% Author: Dirk Scherler (scherler[at]gfz-potsdam.de)
+% Author: Dirk Scherler (scherler[at]gfz.de)
 % Date: August, 2018
+%       July, 2026
 
 arguments
     SW   SWATHobj
@@ -109,6 +111,7 @@ if nargout>2
     end
     varargout{1} = cell2mat(xcoord);
     varargout{2} = cell2mat(ycoord);
+    varargout{3} = ix;
 end
 
 
