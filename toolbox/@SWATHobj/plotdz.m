@@ -35,7 +35,7 @@ function h = plotdz(SW,options)
 %     'plotminmax'    {true}, false
 %     determines whether min/max ranges are plotted
 %  
-%     'boundedline'   true, {false}
+%     'boundedline'   {true}, false
 %     both standard deviation from the mean and min/max are plotted using 
 %     patch.
 %
@@ -160,11 +160,12 @@ if (boundedl) %exist('boundedline','file') &&
     hp(1) = plot(dist,z_mean,'color',options.meancolor,'LineWidth',options.meanlinewidth);
 
 else
-    hp(1) = plot(dist,z_mean,'-','Color',options.meancolor); 
-    hp(2) = plot([dist;nan;dist],[z_mean-z_std;nan;z_mean+z_std],'-','color',clr);
+    hp(1) = plot(dist,z_mean,'-','Color',options.meancolor,'LineWidth',1.5); 
+    hp(2) = plot([dist;nan;dist],[z_mean-z_std;nan;z_mean+z_std],'-',...
+        'color',options.meancolor);
     if options.plotminmax
-        hp(3) = plot([dist;nan;dist],[z_min nan z_max],':',...
-            'color',clr);
+        hp(3) = plot([dist;nan;dist],[z_min(:);nan;z_max(:)],':',...
+            'color',options.meancolor);
     end
 end
 
