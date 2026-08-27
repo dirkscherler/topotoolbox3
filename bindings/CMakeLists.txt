@@ -6,6 +6,15 @@ project(
   LANGUAGES C
 )
 
+set(MATLAB_ADDITIONAL_VERSIONS
+  "R2026a=26.1"
+  "R2025b=25.2"
+  "R2025a=25.1"
+  "R2024b=24.2"
+  "R2024a=24.1"
+  "R2023b=23.2"
+)
+
 set(MATLAB_FIND_DEBUG TRUE)
 find_package(Matlab)
 
